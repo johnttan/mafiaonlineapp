@@ -1,0 +1,27 @@
+div(ng-include='"components/navbar/navbar.html"')
+
+pre {{gameState | json}}
+.container
+    form.thing-form
+    div(ng-show="ingame")
+        | turn: {{gameState.turn}}
+        p.input-group
+            pre(ng-repeat="chat in chats") {{chat.time}} {{chat.who}} {{chat.message}}
+            input.form-control(type='text', placeholder='Chat', ng-model='latestChat')
+            span.input-group-btn
+                button.btn.btn-primary(type='submit', ng-click='sendChat()') Send Chat
+    p.input-group(ng-show="!ingame")
+        input.form-control(type='text', placeholder='Name', ng-model='name')
+        input.form-control(type='text', placeholder='Role', ng-model='role')
+        span.input-group-btn
+        button.btn.btn-primary(type='submit', ng-click='addThing()') Add New
+    button.btn.btn-primary(type='submit', ng-click='checkState()') CheckGameState
+    input.form-control(type='text', placeholder='LOAD TIME INTERVAL', ng-model='loadtime')
+    button.btn.btn-primary(type='submit', ng-click='loadTest()') Load Test
+
+footer.footer
+  .container
+    p
+      a(href='https://twitter.com/tyhenkel') @tyhenkel
+      = ' | '
+      a(href='https://github.com/DaftMonk/generator-angular-fullstack/issues?state=open') Issues

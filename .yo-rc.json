@@ -1,0 +1,34 @@
+{
+  "generator-angular-fullstack": {
+    "insertRoutes": true,
+    "registerRoutesFile": "server/routes.js",
+    "routesNeedle": "// Insert routes below",
+    "insertSockets": true,
+    "registerSocketsFile": "server/config/socketio.js",
+    "socketsNeedle": "// Insert sockets below",
+    "filters": {
+      "coffee": true,
+      "jade": true,
+      "css": true,
+      "uirouter": true,
+      "socketio": true,
+      "mongoose": true,
+      "auth": true
+    }
+  },
+  "generator-ng-component": {
+    "routeDirectory": "client/app/",
+    "directiveDirectory": "client/app/",
+    "filterDirectory": "client/app/",
+    "serviceDirectory": "client/app/",
+    "basePath": "client",
+    "filters": [
+      "uirouter"
+    ],
+    "extensions": [
+      "coffee",
+      "jade",
+      "css"
+    ]
+  }
+}

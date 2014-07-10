@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "villager.js",
+  "sourceRoot": "",
+  "sources": [
+    "villager.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;CAAA,KAAA,8BAAA;KAAA;oSAAA;;CAAA,CAAA,CAAA,MAAM;CACJ,OAAA,kBAAA;AAAA,CAAA;UAAA,sCAAA;8BAAA;CACE,EAAA,GAAA,CAAO;CADT;qBADI;CAAN,EAAM;;CAAN,CAIA,CAAc,IAAA,IAAd;;CAJA,CAMM;CACJ;;;;;CAAA;;CAAA,EAAQ,GAAR,IAAA;;CAAA,EACY,MADZ,CACA;;CADA;;CADyB;;CAN3B,CAUA,CAAuB,CAAA,GAAhB,CAAP,IAAuB;CAVvB"
+}
