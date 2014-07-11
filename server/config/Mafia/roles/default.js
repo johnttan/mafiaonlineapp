@@ -36,11 +36,12 @@
         newState.publicPlayers[player] = {};
       }
       newState.reports = {};
-      newState.legalActions = [];
+      newState.legalActions = ['lynch'];
       newState.chats = {
         "public": true
       };
-      newState.turn = 1;
+      newState.grave = gameEngine.getGameState().grave;
+      newState.turn = gameEngine.getTurn();
       return newState;
     };
 
@@ -52,7 +53,6 @@
         currentState.dead = true;
         currentState.causeOfDeath = args.how;
         currentState.killer = args.who;
-        gameState.grave.push(currentState.name);
         return false;
       }
     };

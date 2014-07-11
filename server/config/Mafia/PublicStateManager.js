@@ -36,8 +36,15 @@
     };
 
     PublicStateManager.prototype.removePlayer = function(playerName) {
-      if (__indexOf.call(this.publicState, playerName) >= 0) {
+      var player, playerO, _ref;
+      if (playerName in this.publicState) {
         delete this.publicState[playerName];
+        _ref = this.publicState;
+        for (player in _ref) {
+          if (!__hasProp.call(_ref, player)) continue;
+          playerO = _ref[player];
+          delete playerO.publicPlayers[playerName];
+        }
         return true;
       } else {
         return false;

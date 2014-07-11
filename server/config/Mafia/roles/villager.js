@@ -28,6 +28,31 @@
 
     VillagerRole.prototype.allegiance = 'village';
 
+    VillagerRole.prototype.winCondition = {
+      role: 'villager',
+      check: function(gameState) {
+        var all, numMafia, numVillager, player, playerObj, _ref1;
+        numMafia = 0;
+        numVillager = 0;
+        _ref1 = gameState.players;
+        for (player in _ref1) {
+          if (!__hasProp.call(_ref1, player)) continue;
+          playerObj = _ref1[player];
+          all = playerObj.getCurrentState().allegiance;
+          if (all === 'mafia') {
+            numMafia += 1;
+          } else if (all === 'village') {
+            numVillager += 1;
+          }
+        }
+        if (numMafia === 0 && numVillager > 0) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    };
+
     return VillagerRole;
 
   })(DefaultRole);

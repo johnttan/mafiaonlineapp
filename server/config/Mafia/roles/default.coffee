@@ -23,11 +23,13 @@ class DefaultRole
     for own player, playerobject of gameEngine.getGameState().players
       newState.publicPlayers[player] = {}
     newState.reports = {}
-    newState.legalActions = []
+    newState.legalActions = ['lynch']
     newState.chats = {
       public: true
     }
-    newState.turn = 1
+    newState.grave = gameEngine.getGameState().grave
+    newState.turn = gameEngine.getTurn()
+
     return newState
 
   death: {
@@ -37,7 +39,6 @@ class DefaultRole
       currentState.dead = true
       currentState.causeOfDeath = args.how
       currentState.killer = args.who
-      gameState.grave.push(currentState.name)
       return false
   }
 

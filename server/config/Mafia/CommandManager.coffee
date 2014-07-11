@@ -8,7 +8,10 @@ class CommandManager
       (a, b)->
         return if a.priority < b.priority then 1 else -1
     )
-
+    @votes = {
+      lynch: {}
+      mafia: {}
+    }
 
 # Called from MessageManager
 # Validates that command is legal based on current state
@@ -31,7 +34,9 @@ class CommandManager
       validate: boundValidate
     }
     @activeQueue.push(queueObject)
-
+  nextTurn: ->
+    @gameEngine.getMessageManager().voteResolve()
+    @callActives()
   callActives: ->
     while @activeQueue.size() > 0
       activeObject = @activeQueue.pop()

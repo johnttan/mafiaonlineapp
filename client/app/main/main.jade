@@ -1,27 +1,37 @@
 div(ng-include='"components/navbar/navbar.html"')
 
 pre {{gameState | json}}
+|playersinfo
+pre {{playersInfo | json}}
 .container
     form.thing-form
+    pre {{wins}}
     div(ng-show="ingame")
         | turn: {{gameState.turn}}
+        div(ng-show = "gameState.turn % 2 == 0")
+            form(ng-submit="voteLynch()")
+                input.form-control(type='text', placeholder='lynchWho?', ng-model='lynchTarget')
         p.input-group
-            pre(ng-repeat="chat in chats") {{chat.time}} {{chat.who}} {{chat.message}}
-            input.form-control(type='text', placeholder='Chat', ng-model='latestChat')
-            span.input-group-btn
-                button.btn.btn-primary(type='submit', ng-click='sendChat()') Send Chat
+            pre {{votes}}
+            pre(ng-repeat="chat in chats") {{chat.room}} {{chat.time | date:'mediumTime'}} | {{chat.who}} said : {{chat.message}}
+            form(ng-submit="sendChat()")
+                input.form-control(type='text', placeholder='Chat', ng-model='latestChat')
+                span.input-group-btn
+                    button.btn.btn-primary(type='submit', ng-click='sendChat()') Send Chat
+            button.btn.btn-primary(type='submit', ng-click='startGame()') Start Game
+            div(ng-show="showAction")
+                input.form-control(type='text', placeholder='ActionTarget', ng-model='actionTarget')
+                button.btn.btn-primary(type='submit', ng-click='action()') Do action
     p.input-group(ng-show="!ingame")
-        input.form-control(type='text', placeholder='Name', ng-model='name')
-        input.form-control(type='text', placeholder='Role', ng-model='role')
-        span.input-group-btn
-        button.btn.btn-primary(type='submit', ng-click='addThing()') Add New
+
+        //input.form-control(type='text', placeholder='Name', ng-model='name')
+        //input.form-control(type='text', placeholder='Role', ng-model='role')
+        //span.input-group-btn
+        //button.btn.btn-primary(type='submit', ng-click='addThing()') Add New
+        //button.btn.btn-primary(type='submit', ng-click="setRole('villager')") Villager
+        //button.btn.btn-primary(type='submit', ng-click="setRole('mafia')") Mafia
+        button.btn.btn-primary(type='submit', ng-click="joinQueue()") Join Queue
+
     button.btn.btn-primary(type='submit', ng-click='checkState()') CheckGameState
     input.form-control(type='text', placeholder='LOAD TIME INTERVAL', ng-model='loadtime')
     button.btn.btn-primary(type='submit', ng-click='loadTest()') Load Test
-
-footer.footer
-  .container
-    p
-      a(href='https://twitter.com/tyhenkel') @tyhenkel
-      = ' | '
-      a(href='https://github.com/DaftMonk/generator-angular-fullstack/issues?state=open') Issues

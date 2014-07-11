@@ -22,7 +22,7 @@
       var newstate;
       newstate = MafiaRole.__super__.publicStateInitialize.call(this, playerObject, gameEngine, config);
       newstate.chats.mafia = true;
-      newstate.legalActions = ['action'];
+      newstate.legalActions.push('active');
       return newstate;
     };
 
@@ -43,13 +43,44 @@
           who: currentState.name,
           how: 'mafia_kill'
         };
-        return target.on('death', targetargs);
+        target.on('death', targetargs);
+        return console.log('finished mafia kill', target);
+      }
+    };
+
+    MafiaRole.prototype.winCondition = {
+      role: 'mafia',
+      check: function(gameState) {
+        var all, numMafia, numVillager, player, playerObj, _ref1;
+        numMafia = 0;
+        numVillager = 0;
+        _ref1 = gameState.players;
+        for (player in _ref1) {
+          if (!__hasProp.call(_ref1, player)) continue;
+          playerObj = _ref1[player];
+          if (playerObj.getCurrentState().dead !== true) {
+            all = playerObj.getCurrentState().allegiance;
+            if (all === 'mafia') {
+              numMafia += 1;
+            } else if (all === 'village') {
+              numVillager += 1;
+            }
+          }
+        }
+        if (numMafia > 0 && numVillager === 0) {
+          return true;
+        } else {
+          return false;
+        }
       }
     };
 
     MafiaRole.prototype.validateActive = function(args, currentState, gameEngine) {
       var valid;
       valid = true;
+      if (gameEngine.getTurn() % 2 === 0) {
+        valid = false;
+      }
       if (currentState.blocked) {
         valid = false;
       }
@@ -57,6 +88,9 @@
         valid = false;
       }
       if (gameEngine.getPlayerObject(args.targetname).currentState.dead) {
+        valid = false;
+      }
+      if (gameEngine.getPlayerObject(args.targetname).currentState.allegiance === 'mafia') {
         valid = false;
       }
       return valid;

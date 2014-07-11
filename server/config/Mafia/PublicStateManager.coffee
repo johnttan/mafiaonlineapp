@@ -13,8 +13,10 @@ class PublicStateManager
     return true
 
   removePlayer: (playerName)->
-    if playerName in @publicState
+    if playerName of @publicState
       delete @publicState[playerName]
+      for own player, playerO of @publicState
+        delete playerO.publicPlayers[playerName]
       return true
     else
       return false

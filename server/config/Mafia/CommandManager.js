@@ -14,6 +14,10 @@
           return -1;
         }
       });
+      this.votes = {
+        lynch: {},
+        mafia: {}
+      };
     }
 
     CommandManager.prototype.preValidateActive = function(active, args, player) {
@@ -37,6 +41,11 @@
         validate: boundValidate
       };
       return this.activeQueue.push(queueObject);
+    };
+
+    CommandManager.prototype.nextTurn = function() {
+      this.gameEngine.getMessageManager().voteResolve();
+      return this.callActives();
     };
 
     CommandManager.prototype.callActives = function() {

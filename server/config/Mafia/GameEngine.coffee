@@ -1,42 +1,83 @@
-
-roles = require('./roles')
 PlayerGame = require('./PlayerGame').PlayerGame
 CommandManager = require('./CommandManager').CommandManager
 PublicStateManager = require('./PublicStateManager').PublicStateManager
 MessageManager = require('./MessageManager').MessageManager
 class GameEngine
-  constructor: (io, ioNamespace, Config)->
-    @config = new Config()
+  constructor: (io, ioNamespace, playersInfo, config)->
+    @ioNamespace = ioNamespace
+    @config = config
+    @roles = config.roles
     @gameState = {}
     @config.defaultGameState(@gameState)
-    @playersObject = {}
+    @playersInfo = playersInfo
     @manager = new CommandManager(@)
     @publicStateManager = new PublicStateManager()
     @messageManager = new MessageManager(io, ioNamespace, @)
-
-
+    @started = false
+    @winConditions = {}
   nextTurn: ->
-    @gameState.turn += 1
-    for own player, playerObject of @gameState.players
-      playerObject.endTurn(@gameState.turn)
-    @publicStateManager.nextTurn(@gameState.turn)
-    @messageManager.nextTurn()
+    if @started
+      @manager.nextTurn()
+      @gameState.turn += 1
+      @cleanupDead()
+      for own player, playerObject of @gameState.players
+        playerObject.endTurn(@gameState.turn)
+      @publicStateManager.nextTurn(@gameState.turn)
+      @messageManager.nextTurn()
+      wins = {}
+      for own role, wincondition of @winConditions
+        if wincondition.check(@gameState)
+          wins[role] = true
+      console.log(wins, 'wins')
+      if Object.keys(wins).length > 0
+        @wins = wins
+        @messageManager.endGame(@wins)
 
+  lynch: (player)->
+    @gameState.players[player].getCurrentState().dead = true
+    @gameState.players[player].getCurrentState().causeofdeath = 'lynch'
+    @cleanupDead()
+    console.log 'lynched', 'player'
+  cleanupDead: ->
+    for player, playerObj of @gameState.players
+      if playerObj.getCurrentState().dead and player not of @gameState.grave
+        console.log playerObj.getCurrentState()
+        @gameState.grave[player] = {
+          role: playerObj.getCurrentState().role
+        }
+        @publicStateManager.removePlayer(player)
+        @messageManager.removePlayer(player)
+  startGame: ->
+    if not @started
+      @started = true
+      @pushPublicStates()
+  pushPublicStates: ->
+    if @started
+      @messageManager.pushPublicStates()
+  addPlayer: (playerInfo, socket)->
+    if not @started
+      @gameState.players[playerInfo.name] = new PlayerGame(@roles[playerInfo.role], playerInfo, @, @config)
+      @publicStateManager.addPlayer(@gameState.players[playerInfo.name], @, @config)
+      @messageManager.addPlayer(socket)
+  addWinCondition: (winCondition)->
+    if winCondition.role not of @winConditions
+      @winConditions[winCondition.role] = winCondition
+  removeWinCondition: (role)->
+    delete @winConditions[role]
 
-  addPlayer: (playerInfo)->
-    @playersObject[playerInfo.name] = playerInfo
-    @gameState.players[playerInfo.name] = new PlayerGame(roles[playerInfo.role], playerInfo, @, @config)
-    @publicStateManager.addPlayer(@gameState.players[playerInfo.name], @, @config)
-    @messageManager.addPlayer()
-
-
+  sendMessage: (socket, chatMessage)->
+    @messageManager.sendMessage(socket, chatMessage)
   deletePlayer: (playerName)->
-    delete @playersObject[playerName]
-    delete @gameState.players[playerName]
-    @publicStateManager.removePlayer(playerName)
-    @messageManager.removePlayer(playerName)
-  getChatManager: ->
-    return
+    if @started
+      console.log 'game already started', 'killing', playerName
+      @gameState.players[playerName].getCurrentState().dead = true
+      @cleanupDead()
+    else
+      delete @gameState.players[playerName]
+      @publicStateManager.removePlayer(playerName)
+      @messageManager.removePlayer(playerName)
+  getMessageManager: ->
+    return @messageManager
   getCommandManager: ->
     return @manager
   getAllPublicState: ->
@@ -46,9 +87,11 @@ class GameEngine
   getGameState: ->
     return @gameState
   getAllPlayers: ->
-    return @playersObject
+    return @playersInfo
   getPlayerInfo: (player)->
-    return @playersObject[player]
+    return @playersInfo[player]
+  getPlayerRole: (player)->
+    return @getPlayerObject(player).playerInfo.role
   getPlayerObject: (player)->
     return @gameState.players[player]
   getTurn: ->

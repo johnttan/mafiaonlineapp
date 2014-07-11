@@ -30,6 +30,7 @@
       this.currentState.name = playerInfo.name;
       this.active = roleObject.active;
       this.validateActive = roleObject.validateActive;
+      this.gameEngine.addWinCondition(this.roleObject.winCondition);
       _ref = roleObject.actions;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         action = _ref[_i];
@@ -137,11 +138,7 @@
         this.addToBuffer(action, roleObject[action]);
       }
       this._flushBuffer();
-      if (!roleObject.initializeState) {
-        this.initializeState = this.config.defaultInitializeState;
-      } else {
-        this.initializeState = roleObject.initializeState;
-      }
+      this.initializeState = roleObject.initializeState;
       return this.initializeState(this.currentState);
     };
 

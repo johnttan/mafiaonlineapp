@@ -1,11 +1,16 @@
+roles = require('./roles')
 
 class Config
-  constructor: ->
-
+  constructor: (availableRoles, random)->
+    @roles = roles
+    @availableRoles = availableRoles
   defaultGameState: (gameState)->
     gameState.turn = 1
     gameState.players = {}
-    gameState.grave = []
+    gameState.grave = {}
+  generateRandomRoles: (number)->
+
+
 
 
 exports.Config = Config

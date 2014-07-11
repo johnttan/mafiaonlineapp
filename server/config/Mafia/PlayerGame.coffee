@@ -21,7 +21,7 @@ class PlayerGameParent
     #   Set instance variables to roleObject specifics
     @active = roleObject.active
     @validateActive = roleObject.validateActive
-
+    @gameEngine.addWinCondition(@roleObject.winCondition)
     for action in roleObject.actions
       @addToBuffer(action, roleObject[action])
 
@@ -89,11 +89,7 @@ class PlayerGame extends PlayerGameParent
       @addToBuffer(action, roleObject[action])
     @_flushBuffer()
 
-    if not roleObject.initializeState
-      @initializeState = @config.defaultInitializeState
-    else
-      @initializeState = roleObject.initializeState
-
+    @initializeState = roleObject.initializeState
     @initializeState(@currentState)
 
 
