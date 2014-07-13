@@ -25,7 +25,8 @@
     "passport-local": "~0.1.6",
     "socket.io": "~1.0.6",
     "socketio-jwt": "^2.0.2",
-    "static-favicon": "~1.0.1"
+    "static-favicon": "~1.0.1",
+    "sillyname": "0.0.3"
   },
   "devDependencies": {
     "grunt": "~0.4.4",

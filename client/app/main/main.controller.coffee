@@ -1,8 +1,21 @@
 'use strict'
 
-angular.module('mafiaOnlineApp').controller 'MainCtrl', ['$scope', '$http', ($scope, $http) ->
-  $scope.ingame = false
+angular.module('mafiaOnlineApp').controller 'MainCtrl', ['$scope', '$http', '$state',($scope, $http, $state) ->
+  socket = io('/')
+  socket.on('playerNotFound', ->
+    console.log 'playerNotFound'
+    socket.emit('addPlayer', {name: 'loltest'})
+  )
+  socket.on('playerFound', (user)->
+    $scope.user = user
+    console.log user
+    $scope.joinQueue()
+  )
 
+
+  $scope.ingame = false
+  $scope.changeRoute = (route)->
+    $state.go(route)
 
   $scope.joinQueue = ->
     socket = io('/matchmaking')

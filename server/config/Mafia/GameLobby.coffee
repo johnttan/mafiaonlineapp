@@ -1,5 +1,6 @@
 GameEngine = require('./GameEngine').GameEngine
-
+uuid = require('node-uuid')
+UserManager = require('./UserManager').UserManager
 class GameLobby
   constructor: (io, ioNamespace, queue, config)->
     @queue = queue
@@ -17,19 +18,30 @@ class GameLobby
     console.log(@availableRoles)
     do (lobby = @)->
       ioNamespace.on('connection', (socket)->
-        playername = (Math.random()+1).toString(36).substring(7)
-        playerInfo = {
-          name: playername
-        }
-        socket.playerName = playername
-        lobby.addPlayer(socket, playerInfo)
+        playerInfo = UserManager.getUser(socket.id)
+        if playerInfo and not lobby.gameEngine.started
+          socket.playerName = playerInfo.playerName
+          lobby.addPlayer(socket, playerInfo)
+        else
+          socket.emit('playerNotFound')
+      )
+      ioNamespace.on('quit', (socket)->
+        lobby.removePlayer(socket.playerName)
       )
       ioNamespace.on('disconnect', (socket)->
-        lobby.removePlayer(socket.playerName)
+        if not lobby.gameEngine.started
+          lobby.removePlayer(socket.playerName)
       )
       ioNamespace.on('endGame', (wins)->
         console.log 'lobby got endGame', wins
       )
+  getGameID: ->
+    return @ioNamespace.name
+  checkGameEnd: (playerName)->
+    if Object.keys(@gameEngine.wins).length isnt 0
+      return false
+    else
+      return true
   checkStatus: ->
     if @availableRoles.length == 0 or @gameEngine.started is true
       return false

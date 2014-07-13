@@ -1,14 +1,34 @@
 GameLobby = require('./GameLobby').GameLobby
 uuid = require('node-uuid')
 Config = require('./config').Config
+UserManager = require('./UserManager').UserManager
+
 class QueueManager
   constructor: (io)->
     @io = io
     @gamesArray = []
     do (queue = @)->
-      io.of('/matchmaking').on('connection', (socket)->
+      io.of('/').on('connection', (socket)->
+          user = UserManager.getUser(socket.id)
+          if not user
+            socket.emit('playerNotFound')
+            socket.on('addPlayer', (playerInfo)->
+              UserManager.setUser(socket, playerInfo)
+            )
+          else
+            socket.emit('playerFound', user)
 
-          queue.beginQueue(socket)
+      )
+      io.of('/matchmaking').on('connection', (socket)->
+          user = UserManager.getUser(socket.id)
+          if not user
+            socket.emit('playerNotFound')
+            socket.on('addPlayer', (playerInfo)->
+              UserManager.setUser(socket, playerInfo)
+            )
+          else
+            console.log socket.id
+            queue.beginQueue(socket)
       )
 
   beginQueue: (socket)->
