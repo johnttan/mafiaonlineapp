@@ -15,12 +15,13 @@ class GameLobby
     for _i in [@availableRoles.length-1..1]
       _j = Math.floor(Math.random() * (_i + 1))
       [@availableRoles[_i], @availableRoles[_j]] = [@availableRoles[_j], @availableRoles[_i]]
-    console.log(@availableRoles)
+#    console.log(@availableRoles)
     do (lobby = @)->
       ioNamespace.on('connection', (socket)->
         playerInfo = UserManager.getUser(socket.id)
         if playerInfo and not lobby.gameEngine.started
-          socket.playerName = playerInfo.playerName
+          socket.playerName = playerInfo.name
+          console.log 'adding player', playerInfo.name, 'to LOBBY'
           lobby.addPlayer(socket, playerInfo)
         else
           socket.emit('playerNotFound')
@@ -50,6 +51,8 @@ class GameLobby
   outOfQueue: ->
     @inQueue = false
   addPlayer: (socket, playerInfo)->
+#    console.log playerInfo, 'playerinfo in game engine add player'
+    console.log 'in game engine add player'
     if @checkStatus()
       @playersInfo[socket.playerName] = playerInfo
       role = @availableRoles.pop()
@@ -64,6 +67,7 @@ class GameLobby
     else
       socket.emit('join_failed')
   removePlayer: (socket)->
+#    console.log @gameEngine.playersInfo
     if not @gameEngine.started
       @availableRoles.push(@gameEngine.getPlayerRole(socket.playerName))
     delete @playersInfo[socket.playerName]

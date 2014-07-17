@@ -12,32 +12,50 @@ class QueueManager
           user = UserManager.getUser(socket.id)
           if not user
             socket.emit('playerNotFound')
+            console.log('playerNotFound')
             socket.on('addPlayer', (playerInfo)->
               UserManager.setUser(socket, playerInfo)
             )
           else
             socket.emit('playerFound', user)
+            console.log('playerFound')
+#            console.log('playerFound', user)
 
       )
+
       io.of('/matchmaking').on('connection', (socket)->
+          console.log 'matchmaking connected', socket.id
           user = UserManager.getUser(socket.id)
-          if not user
+          console.log user, 'user'
+          if user is undefined
+            console.log 'emitting playernotfound at matchmaking'
             socket.emit('playerNotFound')
             socket.on('addPlayer', (playerInfo)->
+#              console.log 'addingPlayer at matchmaking', playerInfo
               UserManager.setUser(socket, playerInfo)
+              socket.playerName = playerInfo.name
+              queue.beginQueue(socket)
             )
           else
-            console.log socket.id
+            console.log socket.id, 'playerFound'
+            socket.playerName = user.name
+            console.log socket.playerName, 'matchmaking name'
+            socket.emit('playerFound', user)
+          socket.on('joinQueue', ->
             queue.beginQueue(socket)
+          )
       )
 
   beginQueue: (socket)->
+    socket.emit('beginQueue')
     console.log 'beginqueue'
     gamefound = false
     while not gamefound
+      console.log 'searching for game'
       queueLength = @gamesArray.length
       if queueLength isnt 0
         if @gamesArray[queueLength-1].game.checkStatus()
+#          console.log UserManager.getUser(socket.id)
           socket.emit('match_found', @gamesArray[queueLength-1].namespace.name)
           gamefound = true
           console.log 'found new game'
@@ -57,7 +75,6 @@ class QueueManager
         }
         @gamesArray.push(gameObject)
         console.log 'made new game'
-#        console.log(gameObject)
 
   addToQueue: (game)->
     @gamesArray.push(game)

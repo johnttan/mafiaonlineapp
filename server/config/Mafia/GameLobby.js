@@ -23,13 +23,13 @@
         _j = Math.floor(Math.random() * (_i + 1));
         _ref1 = [this.availableRoles[_j], this.availableRoles[_i]], this.availableRoles[_i] = _ref1[0], this.availableRoles[_j] = _ref1[1];
       }
-      console.log(this.availableRoles);
       (function(lobby) {
         ioNamespace.on('connection', function(socket) {
           var playerInfo;
           playerInfo = UserManager.getUser(socket.id);
           if (playerInfo && !lobby.gameEngine.started) {
-            socket.playerName = playerInfo.playerName;
+            socket.playerName = playerInfo.name;
+            console.log('adding player', playerInfo.name, 'to LOBBY');
             return lobby.addPlayer(socket, playerInfo);
           } else {
             return socket.emit('playerNotFound');
@@ -75,6 +75,7 @@
 
     GameLobby.prototype.addPlayer = function(socket, playerInfo) {
       var playerGameInfo, role;
+      console.log('in game engine add player');
       if (this.checkStatus()) {
         this.playersInfo[socket.playerName] = playerInfo;
         role = this.availableRoles.pop();

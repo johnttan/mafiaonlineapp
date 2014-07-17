@@ -1,12 +1,11 @@
 .ui.celled.center.middle.aligned.grid
     .row
         .ui.vertical.menu#sideplayermenu
-            a.header.item {{playerInfo.name}}
-                i.user.icon
+            a.header.item {{user.name}}
             a.item
         .two.wide.column
             .ui.selection.divided.list
-                .item(ng-repeat="player in players")
+                .item(ng-repeat="player of playersInfo")
                     img.ui.avatar.image(ng-src="{{player.avatar}}")
                     .content
                         a.header {{player.name}}

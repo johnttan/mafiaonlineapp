@@ -20,35 +20,49 @@
           user = UserManager.getUser(socket.id);
           if (!user) {
             socket.emit('playerNotFound');
+            console.log('playerNotFound');
             return socket.on('addPlayer', function(playerInfo) {
               return UserManager.setUser(socket, playerInfo);
             });
           } else {
-            return socket.emit('playerFound', user);
+            socket.emit('playerFound', user);
+            return console.log('playerFound');
           }
         });
         return io.of('/matchmaking').on('connection', function(socket) {
           var user;
+          console.log('matchmaking connected', socket.id);
           user = UserManager.getUser(socket.id);
-          if (!user) {
+          console.log(user, 'user');
+          if (user === void 0) {
+            console.log('emitting playernotfound at matchmaking');
             socket.emit('playerNotFound');
-            return socket.on('addPlayer', function(playerInfo) {
-              return UserManager.setUser(socket, playerInfo);
+            socket.on('addPlayer', function(playerInfo) {
+              UserManager.setUser(socket, playerInfo);
+              socket.playerName = playerInfo.name;
+              return queue.beginQueue(socket);
             });
           } else {
-            console.log(socket.id);
-            return queue.beginQueue(socket);
+            console.log(socket.id, 'playerFound');
+            socket.playerName = user.name;
+            console.log(socket.playerName, 'matchmaking name');
+            socket.emit('playerFound', user);
           }
+          return socket.on('joinQueue', function() {
+            return queue.beginQueue(socket);
+          });
         });
       })(this);
     }
 
     QueueManager.prototype.beginQueue = function(socket) {
       var game, gameObject, gamefound, newNamespace, queueLength, randomName, removedGame, _results;
+      socket.emit('beginQueue');
       console.log('beginqueue');
       gamefound = false;
       _results = [];
       while (!gamefound) {
+        console.log('searching for game');
         queueLength = this.gamesArray.length;
         if (queueLength !== 0) {
           if (this.gamesArray[queueLength - 1].game.checkStatus()) {

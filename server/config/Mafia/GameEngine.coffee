@@ -58,6 +58,7 @@ class GameEngine
     if not @started
       @gameState.players[playerInfo.name] = new PlayerGame(@roles[playerInfo.role], playerInfo, @, @config)
       @publicStateManager.addPlayer(@gameState.players[playerInfo.name], @, @config)
+      console.log(@playersInfo)
       @messageManager.addPlayer(socket)
   addWinCondition: (winCondition)->
     if winCondition.role not of @winConditions

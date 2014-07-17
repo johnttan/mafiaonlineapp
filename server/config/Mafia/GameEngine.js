@@ -101,6 +101,7 @@
       if (!this.started) {
         this.gameState.players[playerInfo.name] = new PlayerGame(this.roles[playerInfo.role], playerInfo, this, this.config);
         this.publicStateManager.addPlayer(this.gameState.players[playerInfo.name], this, this.config);
+        console.log(this.playersInfo);
         return this.messageManager.addPlayer(socket);
       }
     };
