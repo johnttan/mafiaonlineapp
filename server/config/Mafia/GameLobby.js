@@ -32,7 +32,7 @@
             console.log('adding player', playerInfo.name, 'to LOBBY');
             return lobby.addPlayer(socket, playerInfo);
           } else {
-            return socket.emit('playerNotFound');
+            return socket.emit('playerNotFound, at lobby');
           }
         });
         ioNamespace.on('quit', function(socket) {
@@ -85,7 +85,10 @@
         };
         this.gameEngine.addPlayer(playerGameInfo, socket);
         this.addGameListeners(socket);
-        return this.ioNamespace.emit('joined', this.playersInfo);
+        this.ioNamespace.emit('joined', this.playersInfo);
+        if (this.availableRoles.length === 0) {
+          return this.gameEngine.startGame();
+        }
       } else {
         return socket.emit('join_failed');
       }

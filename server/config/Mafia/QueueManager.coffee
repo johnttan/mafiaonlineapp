@@ -12,7 +12,7 @@ class QueueManager
           user = UserManager.getUser(socket.id)
           if not user
             socket.emit('playerNotFound')
-            console.log('playerNotFound')
+            console.log('playerNotFound, at queuemanager/main')
             socket.on('addPlayer', (playerInfo)->
               UserManager.setUser(socket, playerInfo)
             )
@@ -29,7 +29,7 @@ class QueueManager
           console.log user, 'user'
           if user is undefined
             console.log 'emitting playernotfound at matchmaking'
-            socket.emit('playerNotFound')
+            socket.emit('playerNotFound, at queue')
             socket.on('addPlayer', (playerInfo)->
 #              console.log 'addingPlayer at matchmaking', playerInfo
               UserManager.setUser(socket, playerInfo)

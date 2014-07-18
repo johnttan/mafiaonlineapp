@@ -2,10 +2,10 @@
     .row
         .ui.vertical.menu#sideplayermenu
             a.header.item {{user.name}}
-            a.item
+            span.ui.teal.label.item {{user.role}}
         .two.wide.column
             .ui.selection.divided.list
-                .item(ng-repeat="player of playersInfo")
+                .item(ng-repeat="(name, player) in playersInfo")
                     img.ui.avatar.image(ng-src="{{player.avatar}}")
                     .content
                         a.header {{player.name}}
@@ -22,8 +22,10 @@
                 .ui.celled.grid
                     .row#gamerow
                         .column#chatbox
-                            div(ng-repeat="chat in chats")
+                            div(ng-repeat="chat in chats | orderBy:'-time'")
+                                |{{chat.room}} {{chat.time | date:'mediumTime'}} | {{chat.who}} said : {{chat.message}}
                     .row
                         .column
-                            .ui.fluid.input
-                                input(type="text" placeholder="Chat")
+                            form(ng-submit="sendChat()")
+                                .ui.fluid.input
+                                    input(type="text" placeholder="Chat" ng-model="latestChat")

@@ -3,10 +3,14 @@
     .row
         .six.wide.column.howButton.ui.blue.button
             p HOW TO PLAY
-        .four.wide.column.playButton.ui.red.button(ng-click="changeRoute('main.game')")
+        .four.wide.column.playButton.ui.red.button(ng-click="startQueue()")
             p PLAY
         .six.wide.column.optionsButton.ui.green.button
             p OPTIONS
+
+    .row(ng-show="!playerSent")
+        input(ng-model = "name")
+        .ui.green.button(ng-click="addPlayer()") Add Name
 .ui-view
 //pre {{gameState | json}}
 //|playersinfo

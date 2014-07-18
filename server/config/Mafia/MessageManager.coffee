@@ -9,6 +9,7 @@ class MessageManager
       lynch: {}
       mafia: {}
     }
+    @throttle = {}
 #    console.log ioNamespace
 
   endGame: (wins)->
@@ -59,9 +60,6 @@ class MessageManager
     @pushPublicStates()
   addPlayer: (socket)->
     do(messager=@)->
-      socket.on('startGame', ->
-        messager.gameEngine.startGame()
-      )
       socket.on('checkState', ->
         messager.gameEngine.nextTurn()
       )
@@ -82,13 +80,24 @@ class MessageManager
             messager.commandManager.preValidateActive(actionObject.action, actionObject.args, socket.playerName)
       )
       socket.on('chat', (chatMessage)->
-        if not messager.gameEngine.started
-          chatMessage.room = 'public'
-        console.log('received', chatMessage, ' from ', socket.playerName)
-        if chatMessage.message isnt ''
-          messager.gameEngine.sendMessage(socket, chatMessage)
+        current = new Date()
+        if socket.playerName not of messager.throttle
+          messager.throttle[socket.playerName] = new Date()
+        else
+#          Chat throttle to 300ms min between chats
+          if (current - messager.throttle[socket.playerName]) < 300
+            socket.emit('slowChat')
+          else
+            messager.throttle[socket.playerName] = new Date()
+            if not messager.gameEngine.started
+              chatMessage.room = 'public'
+            chatMessage.playerName = socket.playerName
+            console.log('received', chatMessage, ' from ', socket.playerName)
+            if chatMessage.message isnt ''
+              messager.gameEngine.sendMessage(socket, chatMessage)
       )
     @synchChats()
+    @throttle[socket.playerName] = new Date()
 
 # should already be removed from namespace by GameLobby
 #  and killed by GameEngine
@@ -109,9 +118,10 @@ class MessageManager
 
   pushPublicStates: ->
     for socket in @ioNamespace.sockets
-      playerPublicState = @publicState[socket.playerName]
-      if playerPublicState
-        socket.emit('gameUpdate', playerPublicState)
+      if socket
+        playerPublicState = @publicState[socket.playerName]
+        if playerPublicState
+          socket.emit('gameUpdate', playerPublicState)
   sendMessage: (socket, messageObject)->
     newChat = {
       who: socket.playerName

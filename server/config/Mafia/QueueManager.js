@@ -20,7 +20,7 @@
           user = UserManager.getUser(socket.id);
           if (!user) {
             socket.emit('playerNotFound');
-            console.log('playerNotFound');
+            console.log('playerNotFound, at queuemanager/main');
             return socket.on('addPlayer', function(playerInfo) {
               return UserManager.setUser(socket, playerInfo);
             });
@@ -36,7 +36,7 @@
           console.log(user, 'user');
           if (user === void 0) {
             console.log('emitting playernotfound at matchmaking');
-            socket.emit('playerNotFound');
+            socket.emit('playerNotFound, at queue');
             socket.on('addPlayer', function(playerInfo) {
               UserManager.setUser(socket, playerInfo);
               socket.playerName = playerInfo.name;

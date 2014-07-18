@@ -24,7 +24,7 @@ class GameLobby
           console.log 'adding player', playerInfo.name, 'to LOBBY'
           lobby.addPlayer(socket, playerInfo)
         else
-          socket.emit('playerNotFound')
+          socket.emit('playerNotFound, at lobby')
       )
       ioNamespace.on('quit', (socket)->
         lobby.removePlayer(socket.playerName)
@@ -64,6 +64,8 @@ class GameLobby
       @addGameListeners(socket)
 
       @ioNamespace.emit('joined', @playersInfo)
+      if @availableRoles.length is 0
+        @gameEngine.startGame()
     else
       socket.emit('join_failed')
   removePlayer: (socket)->

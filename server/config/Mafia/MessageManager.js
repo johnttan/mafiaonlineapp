@@ -15,6 +15,7 @@
         lynch: {},
         mafia: {}
       };
+      this.throttle = {};
     }
 
     MessageManager.prototype.endGame = function(wins) {
@@ -95,9 +96,6 @@
 
     MessageManager.prototype.addPlayer = function(socket) {
       (function(messager) {
-        socket.on('startGame', function() {
-          return messager.gameEngine.startGame();
-        });
         socket.on('checkState', function() {
           return messager.gameEngine.nextTurn();
         });
@@ -122,16 +120,29 @@
           }
         });
         return socket.on('chat', function(chatMessage) {
-          if (!messager.gameEngine.started) {
-            chatMessage.room = 'public';
-          }
-          console.log('received', chatMessage, ' from ', socket.playerName);
-          if (chatMessage.message !== '') {
-            return messager.gameEngine.sendMessage(socket, chatMessage);
+          var current;
+          current = new Date();
+          if (!(socket.playerName in messager.throttle)) {
+            return messager.throttle[socket.playerName] = new Date();
+          } else {
+            if ((current - messager.throttle[socket.playerName]) < 300) {
+              return socket.emit('slowChat');
+            } else {
+              messager.throttle[socket.playerName] = new Date();
+              if (!messager.gameEngine.started) {
+                chatMessage.room = 'public';
+              }
+              chatMessage.playerName = socket.playerName;
+              console.log('received', chatMessage, ' from ', socket.playerName);
+              if (chatMessage.message !== '') {
+                return messager.gameEngine.sendMessage(socket, chatMessage);
+              }
+            }
           }
         });
       })(this);
-      return this.synchChats();
+      this.synchChats();
+      return this.throttle[socket.playerName] = new Date();
     };
 
     MessageManager.prototype.removePlayer = function(playerName) {
@@ -180,9 +191,13 @@
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         socket = _ref[_i];
-        playerPublicState = this.publicState[socket.playerName];
-        if (playerPublicState) {
-          _results.push(socket.emit('gameUpdate', playerPublicState));
+        if (socket) {
+          playerPublicState = this.publicState[socket.playerName];
+          if (playerPublicState) {
+            _results.push(socket.emit('gameUpdate', playerPublicState));
+          } else {
+            _results.push(void 0);
+          }
         } else {
           _results.push(void 0);
         }
