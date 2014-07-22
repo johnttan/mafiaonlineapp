@@ -2,12 +2,19 @@
 
 angular.module('mafiaOnlineApp').controller 'GameCtrl', ['$scope', 'GameService', ($scope, GameService) ->
   $scope.chats = []
+  $scope.targetActive = (name)->
+    if $scope.targetname is name
+      return 'active'
+    else
+      return 'inactive'
   $scope.newChat = (newChat)->
     $scope.chats.push(newChat)
     console.log('pushing chat onto view', newChat)
     $scope.$digest()
   GameService.newChat = $scope.newChat
-
+  $scope.target = (targetname)->
+    console.log 'targetting', targetname
+    $scope.targetname = targetname
   $scope.sendChat = ->
     if $scope.latestChat isnt '' and $scope.latestChat.length > 0
       if not $scope.gameState
@@ -28,14 +35,14 @@ angular.module('mafiaOnlineApp').controller 'GameCtrl', ['$scope', 'GameService'
 
   $scope.message = 'Hello'
   $scope.voteLynch = ->
-    if $scope.lynchTarget
+    if $scope.targetname
       console.log 'sending lynch vote'
-      GameService.lynch($scope.lynchTarget)
+      GameService.lynch($scope.targetname)
   $scope.action = ->
-    if $scope.actionTarget of $scope.gameState.publicPlayers
+    if $scope.targetname of $scope.gameState.publicPlayers
       actionObject = {
         args: {
-          targetname: $scope.actionTarget
+          targetname: $scope.targetname
         }
         action: 'active'
       }

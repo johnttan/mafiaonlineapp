@@ -43,9 +43,9 @@ class GameEngine
       if playerObj.getCurrentState().dead and player not of @gameState.grave
         console.log playerObj.getCurrentState()
         @gameState.grave[player] = {
-          role: playerObj.getCurrentState().role
+          role: playerObj.getCurrentState().roleID
         }
-        @publicStateManager.removePlayer(player)
+        @publicStateManager.removePlayer(player, playerObj.getCurrentState().roleID)
         @messageManager.removePlayer(player)
   startGame: ->
     if not @started

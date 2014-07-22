@@ -73,9 +73,9 @@
         if (playerObj.getCurrentState().dead && !(player in this.gameState.grave)) {
           console.log(playerObj.getCurrentState());
           this.gameState.grave[player] = {
-            role: playerObj.getCurrentState().role
+            role: playerObj.getCurrentState().roleID
           };
-          this.publicStateManager.removePlayer(player);
+          this.publicStateManager.removePlayer(player, playerObj.getCurrentState().roleID);
           _results.push(this.messageManager.removePlayer(player));
         } else {
           _results.push(void 0);

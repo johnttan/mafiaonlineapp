@@ -4,6 +4,7 @@ class MessageManager
     @publicState = gameEngine.getAllPublicState()
     @ioNamespace = ioNamespace
     @commandManager = @gameEngine.getCommandManager()
+    @gameEnd = false
     @io = io
     @votes = {
       lynch: {}
@@ -13,7 +14,9 @@ class MessageManager
 #    console.log ioNamespace
 
   endGame: (wins)->
+    @gameEnd = true
     @ioNamespace.emit('endGame', wins)
+
   voteResolve: ->
     if @gameEngine.getTurn() % 2 is 0
       voteKey = 'lynch'
@@ -56,28 +59,38 @@ class MessageManager
       mafia: {}
     }
   nextTurn: ->
+    delete @votes
+    @votes = {
+      lynch: {}
+      mafia: {}
+    }
+    @ioNamespace.in('public').emit('voteUpdate', @votes)
     @synchChats()
     @pushPublicStates()
   addPlayer: (socket)->
     do(messager=@)->
       socket.on('checkState', ->
-        messager.gameEngine.nextTurn()
+        if not messager.gameEnd
+          if messager.gameEngine.started
+            messager.gameEngine.nextTurn()
       )
       socket.on('voteLynch', (target)->
-        if messager.gameEngine.started
-          if messager.gameEngine.getTurn() % 2 is 0 and target of messager.publicState
-            console.log target, 'lynch'
-            messager.votes.lynch[socket.playerName] = target
-            messager.ioNamespace.in('public').emit('voteUpdate', messager.votes)
+        if not messager.gameEnd
+          if messager.gameEngine.started
+            if messager.gameEngine.getTurn() % 2 is 0 and target of messager.publicState
+              console.log target, 'lynch'
+              messager.votes.lynch[socket.playerName] = target
+              messager.ioNamespace.in('public').emit('voteUpdate', messager.votes)
       )
       socket.on('action', (actionObject)->
+        if not messager.gameEnd
 #        quick hack for voting recognition
-        if messager.gameEngine.started
-          if messager.publicState[socket.playerName].role == 'mafia' and messager.gameEngine.getTurn() % 2 isnt 0 and actionObject.args.targetname of messager.publicState
-            messager.votes.mafia[socket.playerName] = actionObject.args.targetname
-            messager.ioNamespace.in('mafia').emit('voteUpdate', messager.votes)
-          else if actionObject.action in messager.publicState[socket.playerName].legalActions
-            messager.commandManager.preValidateActive(actionObject.action, actionObject.args, socket.playerName)
+          if messager.gameEngine.started
+            if messager.publicState[socket.playerName].role == 'mafia' and messager.gameEngine.getTurn() % 2 isnt 0 and actionObject.args.targetname of messager.publicState
+              messager.votes.mafia[socket.playerName] = actionObject.args.targetname
+              messager.ioNamespace.in('mafia').emit('voteUpdate', messager.votes)
+            else if actionObject.action in messager.publicState[socket.playerName].legalActions
+              messager.commandManager.preValidateActive(actionObject.action, actionObject.args, socket.playerName)
       )
       socket.on('chat', (chatMessage)->
         current = new Date()
@@ -86,10 +99,10 @@ class MessageManager
         else
 #          Chat throttle to 300ms min between chats
           if (current - messager.throttle[socket.playerName]) < 300
-            socket.emit('slowChat')
+            socket.emit('slowChat', {time: new Date()})
           else
             messager.throttle[socket.playerName] = new Date()
-            if not messager.gameEngine.started
+            if not messager.gameEngine.started or messager.gameEnd
               chatMessage.room = 'public'
             chatMessage.playerName = socket.playerName
             console.log('received', chatMessage, ' from ', socket.playerName)
@@ -121,7 +134,14 @@ class MessageManager
       if socket
         playerPublicState = @publicState[socket.playerName]
         if playerPublicState
-          socket.emit('gameUpdate', playerPublicState)
+          if @gameEngine.started
+            socket.emit('gameUpdate', playerPublicState)
+          else
+            tempstate = JSON.parse(JSON.stringify(playerPublicState))
+            delete tempstate['role']
+            socket.emit('gameUpdate', tempstate)
+        else
+          socket.emit('dead', @publicState)
   sendMessage: (socket, messageObject)->
     newChat = {
       who: socket.playerName
@@ -134,8 +154,9 @@ class MessageManager
         console.log 'emitting in ', @ioNamespace.name, messageObject.room
         @io.of(@ioNamespace.name).in(messageObject.room).emit('newChat', newChat)
     else if messageObject.room is 'public'
-      console.log 'emitting in ', @ioNamespace.name, messageObject.room
-      @io.of(@ioNamespace.name).in('public').emit('newChat', newChat)
+      if @publicState[socket.playerName]
+        console.log 'emitting in ', @ioNamespace.name, messageObject.room
+        @io.of(@ioNamespace.name).in('public').emit('newChat', newChat)
 
 
 

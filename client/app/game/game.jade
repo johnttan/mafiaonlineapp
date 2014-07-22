@@ -3,19 +3,25 @@
         .ui.vertical.menu#sideplayermenu
             a.header.item {{user.name}}
             span.ui.teal.label.item {{user.role}}
-        .two.wide.column
+            span.ui.red.button.item(ng-show="gameState.turn % 2 == 0" ng-click="voteLynch()") LYNCH {{targetname}}
+            span.ui.green.button.item(ng-click="nextTurn()") Next turn
+        .three.wide.column
             .ui.selection.divided.list
-                .item(ng-repeat="(name, player) in playersInfo")
+                .item(ng-class = "targetActive(name)" ng-click = "target(name)" ng-repeat="(name, player) in playersInfo")
                     img.ui.avatar.image(ng-src="{{player.avatar}}")
                     .content
-                        a.header {{player.name}}
-                        div {{player.role}}
-            .ui.selection.divided.list
-                .item(ng-repeat="dead in graveyard")
-                    img.ui.avatar.image(ng-src="{{player.avatar}}")
-                    .content
-                        .header {{dead.name}}
-                        div {{dead.role}}
+                        a.header {{name}}
+                        //|{{gameState}}
+                        //|{{votes}}
+                        .ui.tiny.red.header(ng-show = "votes.lynch[name]") Votes {{votes.lynch[name]}}
+            .ui.segment
+                .ui.top.attached.label Graveyard
+                .ui.selection.divided.list
+                    .item(ng-repeat="(name, object) in gameState.grave")
+                        img.ui.avatar.image(ng-src="{{object.avatar}}")
+                        .content
+                            .header {{name}}
+                            div {{object.role}}
         .two.wide.column
         .ten.wide.column
             .ui.fluid.vertical.menu#chatroom

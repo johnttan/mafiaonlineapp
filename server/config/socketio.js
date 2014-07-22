@@ -2,7 +2,6 @@
  * Socket.io configuration
  */
 var QueueManager = require('./Mafia/QueueManager').QueueManager
-'use strict';
 var config = require('./environment');
 var util = require('util')
 // When the user disconnects.. perform this

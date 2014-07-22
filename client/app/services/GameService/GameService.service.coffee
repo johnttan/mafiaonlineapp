@@ -53,6 +53,7 @@ angular.module('mafiaOnlineApp').service 'GameService', [
           game.matchmakingSocket.on('match_found', (namespace)->
             game.matchmakingSocket.disconnect(true)
             game.matchmakingSocket = null
+            game.gotGame()
             console.log namespace, 'found'
             game.gameSocket = io(namespace)
             console.log 'match_found and connected'
@@ -70,16 +71,17 @@ angular.module('mafiaOnlineApp').service 'GameService', [
             )
             game.gameSocket.on('left', (playersInfo)->
               game.gameUpdate.playersInfo = playersInfo
+              console.log('left in service')
               game.update(game.gameUpdate)
 
             )
 
-            game.gameSocket.on('slowChat', ->
+            game.gameSocket.on('slowChat', (timeO)->
               chatMessage = {
                 who: 'System'
                 room: 'public'
                 message: 'You can only chat every 300ms'
-                time: new Date()
+                time: timeO.time
               }
               game.newChat(chatMessage)
             )
@@ -99,12 +101,15 @@ angular.module('mafiaOnlineApp').service 'GameService', [
                 game.gameUpdate.ingame = true
               if gameState.turn % 2 != 0 and game.gameState.legalActions.length isnt 0
                 game.gameUpdate.showAction = true
+              game.gameUpdate.gameState = gameState
               game.gameUpdate.user.role = gameState.role
+              game.gameUpdate.playersInfo = gameState.publicPlayers
               game.update(game.gameUpdate)
 
             )
 
             game.gameSocket.on('voteUpdate', (votes)->
+              console.log 'voteUpdate in service'
               game.gameUpdate.votes = votes
               game.update(game.gameUpdate)
             )
@@ -127,7 +132,7 @@ angular.module('mafiaOnlineApp').service 'GameService', [
     lynch: (target)->
       do(game=@)->
         if target
-          console.log 'sending lynch vote'
+          console.log 'sending lynch vote in service'
           game.gameSocket.emit('voteLynch', target)
 
     sendChat: (chatMessage)->

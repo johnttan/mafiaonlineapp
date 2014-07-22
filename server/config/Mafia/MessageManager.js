@@ -10,6 +10,7 @@
       this.publicState = gameEngine.getAllPublicState();
       this.ioNamespace = ioNamespace;
       this.commandManager = this.gameEngine.getCommandManager();
+      this.gameEnd = false;
       this.io = io;
       this.votes = {
         lynch: {},
@@ -19,6 +20,7 @@
     }
 
     MessageManager.prototype.endGame = function(wins) {
+      this.gameEnd = true;
       return this.ioNamespace.emit('endGame', wins);
     };
 
@@ -90,6 +92,12 @@
     };
 
     MessageManager.prototype.nextTurn = function() {
+      delete this.votes;
+      this.votes = {
+        lynch: {},
+        mafia: {}
+      };
+      this.ioNamespace["in"]('public').emit('voteUpdate', this.votes);
       this.synchChats();
       return this.pushPublicStates();
     };
@@ -97,25 +105,33 @@
     MessageManager.prototype.addPlayer = function(socket) {
       (function(messager) {
         socket.on('checkState', function() {
-          return messager.gameEngine.nextTurn();
+          if (!messager.gameEnd) {
+            if (messager.gameEngine.started) {
+              return messager.gameEngine.nextTurn();
+            }
+          }
         });
         socket.on('voteLynch', function(target) {
-          if (messager.gameEngine.started) {
-            if (messager.gameEngine.getTurn() % 2 === 0 && target in messager.publicState) {
-              console.log(target, 'lynch');
-              messager.votes.lynch[socket.playerName] = target;
-              return messager.ioNamespace["in"]('public').emit('voteUpdate', messager.votes);
+          if (!messager.gameEnd) {
+            if (messager.gameEngine.started) {
+              if (messager.gameEngine.getTurn() % 2 === 0 && target in messager.publicState) {
+                console.log(target, 'lynch');
+                messager.votes.lynch[socket.playerName] = target;
+                return messager.ioNamespace["in"]('public').emit('voteUpdate', messager.votes);
+              }
             }
           }
         });
         socket.on('action', function(actionObject) {
           var _ref;
-          if (messager.gameEngine.started) {
-            if (messager.publicState[socket.playerName].role === 'mafia' && messager.gameEngine.getTurn() % 2 !== 0 && actionObject.args.targetname in messager.publicState) {
-              messager.votes.mafia[socket.playerName] = actionObject.args.targetname;
-              return messager.ioNamespace["in"]('mafia').emit('voteUpdate', messager.votes);
-            } else if (_ref = actionObject.action, __indexOf.call(messager.publicState[socket.playerName].legalActions, _ref) >= 0) {
-              return messager.commandManager.preValidateActive(actionObject.action, actionObject.args, socket.playerName);
+          if (!messager.gameEnd) {
+            if (messager.gameEngine.started) {
+              if (messager.publicState[socket.playerName].role === 'mafia' && messager.gameEngine.getTurn() % 2 !== 0 && actionObject.args.targetname in messager.publicState) {
+                messager.votes.mafia[socket.playerName] = actionObject.args.targetname;
+                return messager.ioNamespace["in"]('mafia').emit('voteUpdate', messager.votes);
+              } else if (_ref = actionObject.action, __indexOf.call(messager.publicState[socket.playerName].legalActions, _ref) >= 0) {
+                return messager.commandManager.preValidateActive(actionObject.action, actionObject.args, socket.playerName);
+              }
             }
           }
         });
@@ -126,10 +142,12 @@
             return messager.throttle[socket.playerName] = new Date();
           } else {
             if ((current - messager.throttle[socket.playerName]) < 300) {
-              return socket.emit('slowChat');
+              return socket.emit('slowChat', {
+                time: new Date()
+              });
             } else {
               messager.throttle[socket.playerName] = new Date();
-              if (!messager.gameEngine.started) {
+              if (!messager.gameEngine.started || messager.gameEnd) {
                 chatMessage.room = 'public';
               }
               chatMessage.playerName = socket.playerName;
@@ -186,7 +204,7 @@
     };
 
     MessageManager.prototype.pushPublicStates = function() {
-      var playerPublicState, socket, _i, _len, _ref, _results;
+      var playerPublicState, socket, tempstate, _i, _len, _ref, _results;
       _ref = this.ioNamespace.sockets;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -194,9 +212,15 @@
         if (socket) {
           playerPublicState = this.publicState[socket.playerName];
           if (playerPublicState) {
-            _results.push(socket.emit('gameUpdate', playerPublicState));
+            if (this.gameEngine.started) {
+              _results.push(socket.emit('gameUpdate', playerPublicState));
+            } else {
+              tempstate = JSON.parse(JSON.stringify(playerPublicState));
+              delete tempstate['role'];
+              _results.push(socket.emit('gameUpdate', tempstate));
+            }
           } else {
-            _results.push(void 0);
+            _results.push(socket.emit('dead', this.publicState));
           }
         } else {
           _results.push(void 0);
@@ -219,8 +243,10 @@
           return this.io.of(this.ioNamespace.name)["in"](messageObject.room).emit('newChat', newChat);
         }
       } else if (messageObject.room === 'public') {
-        console.log('emitting in ', this.ioNamespace.name, messageObject.room);
-        return this.io.of(this.ioNamespace.name)["in"]('public').emit('newChat', newChat);
+        if (this.publicState[socket.playerName]) {
+          console.log('emitting in ', this.ioNamespace.name, messageObject.room);
+          return this.io.of(this.ioNamespace.name)["in"]('public').emit('newChat', newChat);
+        }
       }
     };
 

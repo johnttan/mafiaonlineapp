@@ -35,7 +35,7 @@
       return true;
     };
 
-    PublicStateManager.prototype.removePlayer = function(playerName) {
+    PublicStateManager.prototype.removePlayer = function(playerName, role) {
       var player, playerO, _ref;
       if (playerName in this.publicState) {
         delete this.publicState[playerName];
@@ -44,6 +44,12 @@
           if (!__hasProp.call(_ref, player)) continue;
           playerO = _ref[player];
           delete playerO.publicPlayers[playerName];
+          if (!playerO.grave) {
+            playerO.grave = {};
+          }
+          playerO.grave[playerName] = {
+            role: role
+          };
         }
         return true;
       } else {
