@@ -49,7 +49,7 @@
             wins[role] = true;
           }
         }
-        console.log(wins, 'wins');
+        console.log(wins, 'wins', 'at turn ', this.gameState.turn);
         if (Object.keys(wins).length > 0) {
           this.wins = wins;
           return this.messageManager.endGame(this.wins);
@@ -65,9 +65,8 @@
     };
 
     GameEngine.prototype.cleanupDead = function() {
-      var player, playerObj, _ref, _results;
+      var player, playerObj, _ref;
       _ref = this.gameState.players;
-      _results = [];
       for (player in _ref) {
         playerObj = _ref[player];
         if (playerObj.getCurrentState().dead && !(player in this.gameState.grave)) {
@@ -75,25 +74,22 @@
           this.gameState.grave[player] = {
             role: playerObj.getCurrentState().roleID
           };
-          this.publicStateManager.removePlayer(player, playerObj.getCurrentState().roleID);
-          _results.push(this.messageManager.removePlayer(player));
-        } else {
-          _results.push(void 0);
+          this.publicStateManager.removePlayer(player, false, playerObj.getCurrentState().roleID);
         }
       }
-      return _results;
+      return this.messageManager.removePlayer(player);
     };
 
     GameEngine.prototype.startGame = function() {
       if (!this.started) {
         this.started = true;
-        return this.pushPublicStates();
+        return this.pushPublicStates(true);
       }
     };
 
-    GameEngine.prototype.pushPublicStates = function() {
+    GameEngine.prototype.pushPublicStates = function(init) {
       if (this.started) {
-        return this.messageManager.pushPublicStates();
+        return this.messageManager.pushPublicStates(init);
       }
     };
 
@@ -126,8 +122,9 @@
         this.gameState.players[playerName].getCurrentState().dead = true;
         return this.cleanupDead();
       } else {
+        console.log('game not started, removing, ', playerName);
         delete this.gameState.players[playerName];
-        this.publicStateManager.removePlayer(playerName);
+        this.publicStateManager.removePlayer(playerName, true);
         return this.messageManager.removePlayer(playerName);
       }
     };

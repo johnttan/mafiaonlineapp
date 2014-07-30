@@ -35,10 +35,9 @@
       return true;
     };
 
-    PublicStateManager.prototype.removePlayer = function(playerName, role) {
+    PublicStateManager.prototype.removePlayer = function(playerName, preStart, role) {
       var player, playerO, _ref;
       if (playerName in this.publicState) {
-        delete this.publicState[playerName];
         _ref = this.publicState;
         for (player in _ref) {
           if (!__hasProp.call(_ref, player)) continue;
@@ -47,9 +46,12 @@
           if (!playerO.grave) {
             playerO.grave = {};
           }
-          playerO.grave[playerName] = {
-            role: role
-          };
+          if (!preStart) {
+            console.log('game started, adding to graveyard, ', playerName);
+            playerO.grave[playerName] = {
+              role: role
+            };
+          }
         }
         return true;
       } else {

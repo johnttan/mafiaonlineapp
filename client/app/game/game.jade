@@ -1,11 +1,16 @@
 .ui.celled.center.middle.aligned.grid
     .row
         .ui.vertical.menu#sideplayermenu
+            div(ng-show="ingame")
+                |{{gameState.turn / 2}}
+                a.header.item(ng-show="gameState.turn % 2 == 0") DAY {{Math.floor(gameState.turn / 2)}}
+                a.header.item(ng-show="gameState.turn % 2 != 0") Night {{Math.floor(gameState.turn / 2) + 1}}
             a.header.item {{user.name}}
             span.ui.teal.label.item {{user.role}}
-            span.ui.red.button.item(ng-show="gameState.turn % 2 == 0" ng-click="voteLynch()") LYNCH {{targetname}}
-            span.ui.green.button.item(ng-click="nextTurn()") Next turn
-        .three.wide.column
+            span.ui.red.button.item(ng-show="gameState.turn % 2 == 0 && !gameOver" ng-click="voteLynch()") LYNCH {{targetname}}
+            span.ui.red.button.item(ng-show="gameState.turn % 2 != 0 && user.role == 'mafia' && !gameOver" ng-click="action()") KILL {{targetname}}
+            span.ui.blue.item(ng-show="countTime >= 0") {{countTime}}
+        .five.wide.column
             .ui.selection.divided.list
                 .item(ng-class = "targetActive(name)" ng-click = "target(name)" ng-repeat="(name, player) in playersInfo")
                     img.ui.avatar.image(ng-src="{{player.avatar}}")
@@ -13,7 +18,8 @@
                         a.header {{name}}
                         //|{{gameState}}
                         //|{{votes}}
-                        .ui.tiny.red.header(ng-show = "votes.lynch[name]") Votes {{votes.lynch[name]}}
+                        .ui.tiny.red.header(ng-show = "votes.lynch[name] && gameState.turn % 2 == 0") Votes {{votes.lynch[name]}}
+                        .ui.tiny.red.header(ng-show = "votes.mafia[name] && gameState.turn % 2 != 0") Votes {{votes.mafia[name]}}
             .ui.segment
                 .ui.top.attached.label Graveyard
                 .ui.selection.divided.list
@@ -22,13 +28,14 @@
                         .content
                             .header {{name}}
                             div {{object.role}}
-        .two.wide.column
+        .two.wide.column(ng-show="gameOver")
+            div {{winAnnouncements}} wins!
         .ten.wide.column
             .ui.fluid.vertical.menu#chatroom
                 .ui.celled.grid
                     .row#gamerow
                         .column#chatbox
-                            div(ng-repeat="chat in chats | orderBy:'-time'")
+                            div(ng-repeat="chat in chats track by $index | orderBy:'-time'")
                                 |{{chat.room}} {{chat.time | date:'mediumTime'}} | {{chat.who}} said : {{chat.message}}
                     .row
                         .column

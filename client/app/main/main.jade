@@ -8,7 +8,7 @@
         .six.wide.column.optionsButton.ui.green.button
             p OPTIONS
 
-    .row(ng-show="!playerSent")
+    .row(ng-show="!GameService.user.name")
         input(ng-model = "name")
         .ui.green.button(ng-click="addPlayer()") Add Name
 .ui-view

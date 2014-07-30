@@ -13,11 +13,12 @@ class VillagerRole extends DefaultRole
       numMafia = 0
       numVillager = 0
       for own player, playerObj of gameState.players
-        all = playerObj.getCurrentState().allegiance
-        if all == 'mafia'
-          numMafia += 1
-        else if all == 'village'
-          numVillager += 1
+        if playerObj.getCurrentState().dead isnt true
+          all = playerObj.getCurrentState().allegiance
+          if all == 'mafia'
+            numMafia += 1
+          else if all == 'village'
+            numVillager += 1
       if numMafia == 0 and numVillager > 0
         return true
       else

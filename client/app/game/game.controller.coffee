@@ -2,14 +2,15 @@
 
 angular.module('mafiaOnlineApp').controller 'GameCtrl', ['$scope', 'GameService', ($scope, GameService) ->
   $scope.chats = []
+  $scope.Math = window.Math
   $scope.targetActive = (name)->
     if $scope.targetname is name
       return 'active'
     else
       return 'inactive'
-  $scope.newChat = (newChat)->
-    $scope.chats.push(newChat)
-    console.log('pushing chat onto view', newChat)
+  $scope.newChat = (chats)->
+    $scope.chats = chats
+    console.log('pushing chat onto view', chats[-1])
     $scope.$digest()
   GameService.newChat = $scope.newChat
   $scope.target = (targetname)->
@@ -24,6 +25,8 @@ angular.module('mafiaOnlineApp').controller 'GameCtrl', ['$scope', 'GameService'
           room = 'public'
         else if $scope.gameState.role is 'mafia'
           room = 'mafia'
+      if $scope.gameOver
+        room = 'public'
       chatMessage = {
         message: $scope.latestChat
         room: room
@@ -48,6 +51,7 @@ angular.module('mafiaOnlineApp').controller 'GameCtrl', ['$scope', 'GameService'
       }
       console.log 'doing action ', actionObject
       GameService.action(actionObject)
+
   $scope.players = [
 
   ]

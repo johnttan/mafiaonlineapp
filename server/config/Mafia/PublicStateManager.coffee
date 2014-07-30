@@ -12,14 +12,16 @@ class PublicStateManager
         player.publicPlayers[playerObject.currentState.name] = {}
     return true
 
-  removePlayer: (playerName, role)->
+  removePlayer: (playerName, preStart, role)->
     if playerName of @publicState
-      delete @publicState[playerName]
+#      delete @publicState[playerName]
       for own player, playerO of @publicState
         delete playerO.publicPlayers[playerName]
         if not playerO.grave
           playerO.grave = {}
-        playerO.grave[playerName] = {role: role}
+        if not preStart
+          console.log 'game started, adding to graveyard, ', playerName
+          playerO.grave[playerName] = {role: role}
       return true
     else
       return false

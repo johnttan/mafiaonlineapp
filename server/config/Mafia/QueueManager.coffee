@@ -46,6 +46,7 @@ class QueueManager
           )
       )
 
+
   beginQueue: (socket)->
     socket.emit('beginQueue')
     console.log 'beginqueue'

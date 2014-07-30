@@ -28,7 +28,7 @@ class GameEngine
       for own role, wincondition of @winConditions
         if wincondition.check(@gameState)
           wins[role] = true
-      console.log(wins, 'wins')
+      console.log(wins, 'wins', 'at turn ', @gameState.turn)
       if Object.keys(wins).length > 0
         @wins = wins
         @messageManager.endGame(@wins)
@@ -45,15 +45,15 @@ class GameEngine
         @gameState.grave[player] = {
           role: playerObj.getCurrentState().roleID
         }
-        @publicStateManager.removePlayer(player, playerObj.getCurrentState().roleID)
-        @messageManager.removePlayer(player)
+        @publicStateManager.removePlayer(player, false, playerObj.getCurrentState().roleID)
+    @messageManager.removePlayer(player)
   startGame: ->
     if not @started
       @started = true
-      @pushPublicStates()
-  pushPublicStates: ->
+      @pushPublicStates(true)
+  pushPublicStates: (init)->
     if @started
-      @messageManager.pushPublicStates()
+      @messageManager.pushPublicStates(init)
   addPlayer: (playerInfo, socket)->
     if not @started
       @gameState.players[playerInfo.name] = new PlayerGame(@roles[playerInfo.role], playerInfo, @, @config)
@@ -74,8 +74,9 @@ class GameEngine
       @gameState.players[playerName].getCurrentState().dead = true
       @cleanupDead()
     else
+      console.log 'game not started, removing, ', playerName
       delete @gameState.players[playerName]
-      @publicStateManager.removePlayer(playerName)
+      @publicStateManager.removePlayer(playerName, true)
       @messageManager.removePlayer(playerName)
   getMessageManager: ->
     return @messageManager

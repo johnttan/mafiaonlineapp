@@ -2,13 +2,14 @@
 
 angular.module('mafiaOnlineApp').service 'GameService', [
   class Game
-    constructor: ->
+    constructor: ()->
       @matchmakingSocket = undefined
       @gameSocket = undefined
       @mainSocket = io('/')
       @user = {name: undefined}
       @playerFound = false
       @gameUpdate = {}
+      @chats = []
       do(game=@)->
         game.mainSocket.on('playerNotFound', ->
             console.log 'playerNotFound'
@@ -21,6 +22,7 @@ angular.module('mafiaOnlineApp').service 'GameService', [
             game.user = user
             game.playerFound = true
             console.log user
+            game.playerFoundScope()
         )
 
     addPlayer: (name)->
@@ -29,11 +31,20 @@ angular.module('mafiaOnlineApp').service 'GameService', [
         game.user.name = name
         if not game.playerFound
           game.mainSocket.emit('addPlayer', game.user)
-
-    startQueue: ->
+    reset: ->
+      @gameUpdate = {}
+      @user.role = undefined
+      @gameUpdate.user = @user
+    startQueue: (rematch)->
+      console.log rematch
       do(game=@)->
-        if game.playerFound
-          game.matchmakingSocket = io('/matchmaking')
+        if rematch
+          game.reset()
+          console.log 'joining Queue again'
+          game.joinQueue()
+        else if game.playerFound
+          if not game.matchmakingSocket
+            game.matchmakingSocket = io('/matchmaking')
           console.log 'queuestart'
           game.matchmakingSocket.on('playerNotFound', ->
             console.log 'playerNotFound matchmaking'
@@ -51,10 +62,14 @@ angular.module('mafiaOnlineApp').service 'GameService', [
     joinQueue: ->
         do(game=@)->
           game.matchmakingSocket.on('match_found', (namespace)->
-            game.matchmakingSocket.disconnect(true)
-            game.matchmakingSocket = null
+#            game.matchmakingSocket.disconnect(true)
+#            game.matchmakingSocket = null
             game.gotGame()
             console.log namespace, 'found'
+            if game.gameSocket
+              game.gameSocket.disconnect()
+              game.chats = []
+              game.newChat(game.chats)
             game.gameSocket = io(namespace)
             console.log 'match_found and connected'
 
@@ -94,11 +109,18 @@ angular.module('mafiaOnlineApp').service 'GameService', [
 
             )
 
+            game.gameSocket.on('voteUpdate', (votes)->
+              console.log 'voteupdate', votes
+            )
+            game.gameSocket.on('endGame', (wins)->
+              game.gameUpdate.wins = wins
+              console.log wins, 'GAMEOVER'
+              game.update(game.gameUpdate)
+            )
             game.gameSocket.on('gameUpdate', (gameState)->
               game.gameState = gameState
-              console.log 'gameupdate received'
-              if gameState isnt null
-                game.gameUpdate.ingame = true
+              console.log 'gameupdate received', gameState
+              game.gameUpdate.ingame = gameState.started
               if gameState.turn % 2 != 0 and game.gameState.legalActions.length isnt 0
                 game.gameUpdate.showAction = true
               game.gameUpdate.gameState = gameState
@@ -116,14 +138,31 @@ angular.module('mafiaOnlineApp').service 'GameService', [
 
             game.gameSocket.on('newChat', (newChat)->
               console.log 'gotchat', newChat
-              game.newChat(newChat)
+              if newChat not in game.chats
+                game.chats.push(newChat)
+                game.newChat(game.chats)
             )
+
+            game.gameSocket.on('dead', (gameState)->
+              game.gameState = gameState
+              console.log gameState
+              console.log 'dead received'
+#              if gameState isnt null
+#                game.gameUpdate.ingame = true
+#              if gameState.turn % 2 != 0 and game.gameState.legalActions.length isnt 0
+#                game.gameUpdate.showAction = true
+#              game.gameUpdate.gameState = gameState
+#              game.gameUpdate.user.role = gameState.role
+#              game.gameUpdate.playersInfo = gameState.publicPlayers
+#              game.update(game.gameUpdate)
+            )
+
           )
           game.matchmakingSocket.emit('joinQueue')
           console.log 'emit joinQueue'
-    startGame: ->
-      do(game=@)->
-        game.gameSocket.emit('startGame')
+#    startGame: ->
+#      do(game=@)->
+#        game.gameSocket.emit('startGame')
 
     action: (actionObject)->
       do(game=@)->
@@ -142,4 +181,3 @@ angular.module('mafiaOnlineApp').service 'GameService', [
           game.gameSocket.emit('chat', chatMessage)
           console.log game.gameSocket
 ]
-  # AngularJS will instantiate a singleton by calling 'new' on this function
