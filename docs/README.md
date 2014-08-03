@@ -1,6 +1,11 @@
 # Mafia Online Game
 
 An online version of the popular social deduction game Mafia http://en.wikipedia.org/wiki/Mafia_(party_game).
+Demo at:
+http://mafiaonlineapp.herokuapp.com/game
+Source at:
+https://github.com/johnttan/mafiaonlineapp
+
 
 These documents will go over the design and development of the Mafia app.
 
