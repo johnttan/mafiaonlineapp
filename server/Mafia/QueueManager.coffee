@@ -69,7 +69,7 @@ class QueueManager
         randomName = '/' + randomName.split('-').join('')
         newNamespace = @io.of(randomName)
         console.log newNamespace.name
-        game = new GameLobby(@io, newNamespace, @, new Config(['mafia', 'villager', 'villager']))
+        game = new GameLobby(@io, newNamespace, @, new Config(['mafia', 'mafia', 'villager', 'villager', 'villager', 'villager', 'villager']))
         gameObject = {
           game: game
           namespace: newNamespace

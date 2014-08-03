@@ -79,7 +79,7 @@
           randomName = '/' + randomName.split('-').join('');
           newNamespace = this.io.of(randomName);
           console.log(newNamespace.name);
-          game = new GameLobby(this.io, newNamespace, this, new Config(['mafia', 'villager', 'villager']));
+          game = new GameLobby(this.io, newNamespace, this, new Config(['mafia', 'mafia', 'villager', 'villager', 'villager', 'villager', 'villager']));
           gameObject = {
             game: game,
             namespace: newNamespace

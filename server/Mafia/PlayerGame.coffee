@@ -88,10 +88,8 @@ class PlayerGame extends PlayerGameParent
     for action in roleObject.actions
       @addToBuffer(action, roleObject[action])
     @_flushBuffer()
-
     @initializeState = roleObject.initializeState
     @initializeState(@currentState)
-
 
   addToVisited: (target)->
     currentTurn = @gameEngine.getTurn()

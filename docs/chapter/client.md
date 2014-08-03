@@ -4,6 +4,8 @@
 
 The client is built on top of AngularJS. I used Angular because it structures the code in a robust and purposeful way, while remaining flexible. GameService is responsible for storing game state and interacting with Socket.io.
 
+Semantic UI CSS framework is used for most of the styling. The semantic style of the element declarations is brilliant and powerful.
+
 
 **GameService** contains 3 primary socket connections, the main socket, matchmaking socket, and game socket. The game socket is connected to a unique namespace for the game when a game is found.
 

@@ -9,4 +9,4 @@ http://johnttan.gitbooks.io/mafiaonlineapp/
 
 Demo hosted on Heroku at:
 http://mafiaonlineapp.herokuapp.com/
-Currently starts game when 3 players join.
+Currently starts game when 7 players join.

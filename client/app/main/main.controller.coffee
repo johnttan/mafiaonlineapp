@@ -58,6 +58,15 @@ angular.module('mafiaOnlineApp').controller 'MainCtrl', ['$scope', '$http', '$st
       console.log rematch
       $state.go('main.game')
       GameService.startQueue(rematch)
+    else if $scope.playButton == 'GAME'
+      $state.go('main.game')
+    else if $scope.playButton == 'GO BACK TO GAME'
+      $scope.playButton = 'GAME'
+      $state.go('main.game')
+  $scope.goToHowTo = ->
+    if $scope.playButton == 'GAME'
+      $scope.playButton = 'GO BACK TO GAME'
+    $state.go('main.howto')
 
 
   $scope.addPlayer = ->
