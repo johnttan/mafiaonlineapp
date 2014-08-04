@@ -13,4 +13,4 @@ Currently starts game when 7 players join.
 
 
 Screenshot as mafia player
-![At night](//docs/images/screen1.png?raw=true "Mafia Night 3")
+![At night](/docs/images/screen1.png?raw=true "Mafia Night 3")
